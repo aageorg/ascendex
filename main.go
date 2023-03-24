@@ -6,9 +6,9 @@ import (
 	"github.com/gorilla/websocket"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
-"strconv"
 	"time"
 )
 
@@ -49,8 +49,8 @@ type Ascendex struct {
 	conn   *websocket.Conn
 }
 
-func NewAscendex(account_group string) Ascendex {
-	return Ascendex{
+func NewAscendex(account_group string) *Ascendex {
+	return &Ascendex{
 		ws_url: "wss://ascendex.com/" + account_group + "/api/pro/v1/stream",
 	}
 }
@@ -69,15 +69,15 @@ func (a *Ascendex) Connection() error {
 	return nil
 }
 
-func (a *Ascendex) Disconnect() error {
+func (a *Ascendex) Disconnect() {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	err := a.conn.Close()
 	if err != nil {
-		return err
+		fmt.Fprintln(os.Stderr, err)
+		return
 	}
 	a.conn = nil
-	return nil
 }
 
 func (a *Ascendex) SubscribeToChannel(symbol string) error {
@@ -123,7 +123,8 @@ func main() {
 		return
 	}
 	symb := os.Args[1]
-	asc := NewAscendex("0")
+	var asc APIClient
+	asc = NewAscendex("0")
 
 	err := asc.Connection()
 	if err != nil {
