@@ -1,12 +1,120 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"github.com/gorilla/websocket"
 	"os"
+	"regexp"
+	"strings"
+	"sync"
+"strconv"
+	"time"
 )
 
-func (m Message) String() string {
-	return fmt.Sprintf("%s: bid %s offer %s ", m.Symbol, m.Data.Bid[0], m.Data.Ask[0])
+func (bbo BestOrderBook) String() string {
+	return fmt.Sprintf("bid price %f amout %f, offer price %f amount %f", bbo.Bid.Price, bbo.Bid.Amount, bbo.Ask.Price, bbo.Ask.Amount)
+}
+
+func ParseBBO(bbo *BestOrderBook, v interface{}) (err error) {
+	bbo.Ask.Amount, err = strconv.ParseFloat(v.(map[string]any)["ask"].([]any)[1].(string), 64)
+	if err != nil {
+		return
+	}
+	bbo.Ask.Price, err = strconv.ParseFloat(v.(map[string]any)["ask"].([]any)[0].(string), 64)
+	if err != nil {
+		return
+	}
+	bbo.Bid.Amount, err = strconv.ParseFloat(v.(map[string]any)["bid"].([]any)[1].(string), 64)
+	if err != nil {
+		return
+	}
+	bbo.Bid.Price, err = strconv.ParseFloat(v.(map[string]any)["bid"].([]any)[0].(string), 64)
+	if err != nil {
+		return
+	}
+	return
+
+}
+
+type Message struct {
+	M      string      `json:"m"`
+	Symbol string      `json:"symbol,omitempty"`
+	Data   interface{} `json:"data,omitempty"`
+}
+
+type Ascendex struct {
+	mu     sync.Mutex
+	ws_url string
+	conn   *websocket.Conn
+}
+
+func NewAscendex(account_group string) Ascendex {
+	return Ascendex{
+		ws_url: "wss://ascendex.com/" + account_group + "/api/pro/v1/stream",
+	}
+}
+
+func (a *Ascendex) Connection() error {
+	dialer := websocket.Dialer{
+		Subprotocols: []string{"json"},
+	}
+	c, _, err := dialer.Dial(a.ws_url, nil)
+	if err != nil {
+		return fmt.Errorf("Connection establishing failed: %#v\n", err)
+	}
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	a.conn = c
+	return nil
+}
+
+func (a *Ascendex) Disconnect() error {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	err := a.conn.Close()
+	if err != nil {
+		return err
+	}
+	a.conn = nil
+	return nil
+}
+
+func (a *Ascendex) SubscribeToChannel(symbol string) error {
+	re := regexp.MustCompile(`^[A-Z]+\_[A-Z]+$`)
+	if !re.Match([]byte(symbol)) {
+		return errors.New("Invalid symbol parameter")
+	} else {
+		symbol = strings.Replace(symbol, "_", "/", -1)
+	}
+	err := a.conn.WriteJSON(map[string]string{"op": "sub", "ch": "bbo:" + symbol})
+	if err != nil {
+		a.Disconnect()
+		return err
+	}
+	return nil
+}
+
+func (a *Ascendex) ReadMessagesFromChannel(ch chan<- BestOrderBook) {
+	for {
+		var m Message
+		err := a.conn.ReadJSON(&m)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Cannot read message from channel: "+err.Error())
+		}
+		if m.M == "bbo" {
+			var bbo BestOrderBook
+			ParseBBO(&bbo, m.Data)
+			ch <- bbo
+		}
+	}
+}
+
+func (a *Ascendex) WriteMessagesToChannel() {
+	for {
+		a.conn.WriteJSON(map[string]string{"op": "ping"})
+		time.Sleep(15 * time.Second)
+	}
 }
 
 func main() {
@@ -15,24 +123,23 @@ func main() {
 		return
 	}
 	symb := os.Args[1]
-	cl := Client{
-		ws_url: "wss://ascendex.com/0/api/pro/v1/stream",
-	}
-	err := cl.Connection()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
-		return
-	}
-	go cl.WriteMessagesToChannel()
+	asc := NewAscendex("0")
 
-	err = cl.SubscribeToChannel(symb)
+	err := asc.Connection()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		return
 	}
-	ch := make(chan Message, 30)
-	go cl.ReadMessagesFromChannel(ch)
-	for m := range ch {
-		fmt.Fprintln(os.Stdout, m)
+	go asc.WriteMessagesToChannel()
+
+	err = asc.SubscribeToChannel(symb)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
+		return
+	}
+	ch := make(chan BestOrderBook, 30)
+	go asc.ReadMessagesFromChannel(ch)
+	for bbo := range ch {
+		fmt.Fprintln(os.Stdout, bbo)
 	}
 }

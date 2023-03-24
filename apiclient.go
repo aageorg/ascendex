@@ -1,87 +1,48 @@
 package main
 
-import (
-	"fmt"
-	"github.com/gorilla/websocket"
-	"os"
-	"sync"
-	"time"
-)
+type APIClient interface {
+	/*
+		Implement a websocket connection function
+	*/
+	Connection() error
 
-type Data struct {
-	Ts  int64    `json:"ts"`
-	Bid []string `json:"bid"`
-	Ask []string `json:"ask"`
+	/*
+		Implement a disconnect function from websocket
+	*/
+	Disconnect()
+
+	/*
+		Implement a function that will subscribe to updates
+		of BBO for a given symbol
+
+		The symbol must be of the form "TOKEN_ASSET"
+		As an example "USDT_BTC" where USDT is TOKEN and BTC is ASSET
+
+		You will need to convert the symbol in such a way that
+		it complies with the exchange standard
+	*/
+	SubscribeToChannel(symbol string) error
+
+	/*
+		Implement a function that will write the data that
+		we receive from the exchange websocket to the channel
+	*/
+	ReadMessagesFromChannel(ch chan<- BestOrderBook)
+
+	/*
+		Implement a function that will support connecting to a websocket
+	*/
+	WriteMessagesToChannel()
 }
 
-type Message struct {
-	M      string `json:"m"`
-	Symbol string `json:"symbol"`
-	Data   Data   `json:"data"`
+// BestOrderBook struct
+type BestOrderBook struct {
+	Ask Order `json:"ask"` //asks.Price > any bids.Price
+	Bid Order `json:"bid"`
 }
 
-type Client struct {
-	mu        sync.Mutex
-	ws_url    string
-	conn      *websocket.Conn
-	is_closed bool
-}
-
-func (cl *Client) Connection() error {
-	dialer := websocket.Dialer{
-		Subprotocols: []string{"json"},
-	}
-	c, _, err := dialer.Dial(cl.ws_url, nil)
-	if err != nil {
-		return fmt.Errorf("Connection establishing failed: %#v\n", err)
-	}
-	cl.mu.Lock()
-	defer cl.mu.Unlock()
-	cl.conn = c
-	cl.is_closed = false
-	return nil
-}
-
-func (cl *Client) Disconnect() error {
-	err := cl.conn.Close()
-	if err != nil {
-		return err
-	}
-	cl.mu.Lock()
-	defer cl.mu.Unlock()
-	cl.conn = nil
-	cl.is_closed = true
-	return nil
-}
-
-func (cl *Client) SubscribeToChannel(symbol string) error {
-	if symbol != "" {
-		symbol = ":" + symbol
-	}
-	err := cl.conn.WriteJSON(map[string]any{"op": "sub", "ch": "bbo" + symbol})
-	if err != nil {
-		cl.Disconnect()
-		return err
-	}
-	return nil
-}
-
-func (cl *Client) ReadMessagesFromChannel(ch chan Message) {
-	for {
-		var m Message
-		err := cl.conn.ReadJSON(&m)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "Cannot read message from channel: "+err.Error())
-		}
-		if m.M == "bbo" {
-			ch <- m
-		}
-	}
-}
-
-func (cl *Client) WriteMessagesToChannel() {
-	for {
-		cl.conn.WriteJSON(map[string]any{"op": "ping"})
-		time.Sleep(15 * time.Second)
-	}
+// Order struct
+type Order struct {
+	Amount float64 `json:"amount"`
+	Price  float64 `json:"price"`
 }
