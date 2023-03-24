@@ -67,13 +67,11 @@ func (cl *Client) SubscribeToChannel(symbol string) error {
 }
 
 func (cl *Client) ReadMessagesFromChannel(ch chan Message) {
-	var m Message
 	for {
+		var m Message
 		err := cl.conn.ReadJSON(&m)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Cannot read message from channel: "+err.Error())
-			cl.Disconnect()
-			return
 		}
 		if m.M == "bbo" {
 			ch <- m
