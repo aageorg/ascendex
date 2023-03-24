@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -20,6 +21,7 @@ type Message struct {
 }
 
 type Client struct {
+	mu        sync.Mutex
 	ws_url    string
 	conn      *websocket.Conn
 	is_closed bool
@@ -33,6 +35,8 @@ func (cl *Client) Connection() error {
 	if err != nil {
 		return fmt.Errorf("Connection establishing failed: %#v\n", err)
 	}
+	cl.mu.Lock()
+	defer cl.mu.Unlock()
 	cl.conn = c
 	cl.is_closed = false
 	return nil
@@ -43,6 +47,9 @@ func (cl *Client) Disconnect() error {
 	if err != nil {
 		return err
 	}
+	cl.mu.Lock()
+	defer cl.mu.Unlock()
+	cl.conn = nil
 	cl.is_closed = true
 	return nil
 }
