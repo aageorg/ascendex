@@ -30,3 +30,23 @@ bid price 27744.710000 amout 0.013570, offer price 27760.370000 amount 0.004900
 bid price 27744.730000 amout 0.013550, offer price 27760.370000 amount 0.001500
 ...
 ```
+
+### Tests
+```
+t$ go test -v
+=== RUN   TestConnection_Success
+--- PASS: TestConnection_Success (1.05s)
+=== RUN   TestConnection_Failure
+--- PASS: TestConnection_Failure (0.00s)
+=== RUN   TestSubscribeToChannel_Success
+--- PASS: TestSubscribeToChannel_Success (0.00s)
+=== RUN   TestSubscribeToChannel_Failure
+--- PASS: TestSubscribeToChannel_Failure (0.00s)
+=== RUN   TestWriteMessagesToChannel_Success
+--- PASS: TestWriteMessagesToChannel_Success (0.26s)
+=== RUN   TestReadMessagesFromChannel_Success
+--- PASS: TestReadMessagesFromChannel_Success (0.25s)
+PASS
+ok      github.com/aageorg/apiclient    2.667s
+
+```

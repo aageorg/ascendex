@@ -9,11 +9,10 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 )
 
 func (bbo BestOrderBook) String() string {
-	return fmt.Sprintf("bid price %f amout %f, offer price %f amount %f", bbo.Bid.Price, bbo.Bid.Amount, bbo.Ask.Price, bbo.Ask.Amount)
+	return fmt.Sprintf("bid price %.2f amout %f, offer price %.2f amount %f", bbo.Bid.Price, bbo.Bid.Amount, bbo.Ask.Price, bbo.Ask.Amount)
 }
 
 func ParseBBO(bbo *BestOrderBook, v interface{}) (err error) {
@@ -72,6 +71,9 @@ func (a *Ascendex) Connection() error {
 func (a *Ascendex) Disconnect() {
 	a.mu.Lock()
 	defer a.mu.Unlock()
+	if a.conn == nil {
+		return
+	}
 	err := a.conn.Close()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -81,6 +83,9 @@ func (a *Ascendex) Disconnect() {
 }
 
 func (a *Ascendex) SubscribeToChannel(symbol string) error {
+	if a.conn == nil {
+		return errors.New("Websocket connection closed")
+	}
 	re := regexp.MustCompile(`^[A-Z]+\_[A-Z]+$`)
 	if !re.Match([]byte(symbol)) {
 		return errors.New("Invalid symbol parameter")
@@ -95,6 +100,26 @@ func (a *Ascendex) SubscribeToChannel(symbol string) error {
 	return nil
 }
 
+
+func (a *Ascendex) UnsubscribeFromChannel(symbol string) error {
+	if a.conn == nil {
+		return errors.New("Websocket connection closed")
+	}
+	re := regexp.MustCompile(`^[A-Z]+\_[A-Z]+$`)
+	if !re.Match([]byte(symbol))&&symbol!="" {
+		return errors.New("Invalid symbol parameter")
+	} else if symbol!=""{
+		symbol = ":"+strings.Replace(symbol, "_", "/", -1)
+	}
+	err := a.conn.WriteJSON(map[string]string{"op": "unsub", "ch": "bbo" + symbol})
+	if err != nil {
+		a.Disconnect()
+		return err
+	}
+	return nil
+}
+
+
 func (a *Ascendex) ReadMessagesFromChannel(ch chan<- BestOrderBook) {
 	for {
 		var m Message
@@ -102,18 +127,17 @@ func (a *Ascendex) ReadMessagesFromChannel(ch chan<- BestOrderBook) {
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Cannot read message from channel: "+err.Error())
 		}
+		var bbo BestOrderBook
 		if m.M == "bbo" {
-			var bbo BestOrderBook
-			ParseBBO(&bbo, m.Data)
-			ch <- bbo
+			if err = ParseBBO(&bbo, m.Data); err == nil {
+				ch <- bbo
+			}
 		}
 	}
 }
-
 func (a *Ascendex) WriteMessagesToChannel() {
-	for {
+	if a.conn != nil {
 		a.conn.WriteJSON(map[string]string{"op": "ping"})
-		time.Sleep(15 * time.Second)
 	}
 }
 
