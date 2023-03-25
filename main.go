@@ -101,6 +101,8 @@ func (a *Ascendex) SubscribeToChannel(symbol string) error {
 	return nil
 }
 
+// Required for testing
+
 func (a *Ascendex) UnsubscribeFromChannel(symbol string) error {
 	if a.conn == nil {
 		return errors.New("Websocket connection closed")

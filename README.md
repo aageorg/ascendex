@@ -11,29 +11,24 @@ The tool uses [Gorilla WebSocket](https://github.com/gorilla/websocket) package.
 ```
 $ git clone https://github.com/aageorg/ascendex
 $ cd ascendex
-$ go build -o apiclient
-$ ./apiclient BTC_USDT
-bid price 27744.980000 amout 0.013570, offer price 27760.390000 amount 0.001500
-bid price 27745.000000 amout 0.013570, offer price 27760.390000 amount 0.001500
-bid price 27745.020000 amout 0.013570, offer price 27760.390000 amount 0.001500
-bid price 27745.040000 amout 0.013570, offer price 27760.380000 amount 0.004900
-bid price 27745.060000 amout 0.013570, offer price 27760.380000 amount 0.004900
-bid price 27745.080000 amout 0.013570, offer price 27760.380000 amount 0.004900
-bid price 27745.090000 amout 0.007200, offer price 27760.380000 amount 0.001500
-bid price 27745.120000 amout 0.013570, offer price 27760.380000 amount 0.001500
-bid price 27745.140000 amout 0.013570, offer price 27760.380000 amount 0.001500
-bid price 27745.160000 amout 0.013570, offer price 27760.380000 amount 0.001500
-bid price 27745.170000 amout 0.007200, offer price 27760.370000 amount 0.004900
-bid price 27744.670000 amout 0.013570, offer price 27760.370000 amount 0.004900
-bid price 27744.690000 amout 0.013570, offer price 27760.370000 amount 0.004900
-bid price 27744.710000 amout 0.013570, offer price 27760.370000 amount 0.004900
-bid price 27744.730000 amout 0.013550, offer price 27760.370000 amount 0.001500
+$ go build -o ascendex
+$ ./ascendex BTC_USDT
+bid price 27399.45 amout 0.014150, offer price 27416.02 amount 0.014150
+bid price 27399.45 amout 0.014150, offer price 27416.00 amount 0.014150
+bid price 27399.45 amout 0.014150, offer price 27415.99 amount 0.007300
+bid price 27400.37 amout 0.008650, offer price 27415.99 amount 0.007300
+bid price 27403.38 amout 0.008650, offer price 27415.98 amount 0.014370
+bid price 27403.38 amout 0.008650, offer price 27415.97 amount 0.007300
+bid price 27403.39 amout 0.014370, offer price 27415.94 amount 0.014370
+bid price 27403.39 amout 0.014370, offer price 27415.92 amount 0.014370
+bid price 27403.39 amout 0.023020, offer price 27415.90 amount 0.014370
+bid price 27403.40 amout 0.014370, offer price 27415.88 amount 0.014370
 ...
 ```
 
 ### Tests
 ```
-t$ go test -v
+$ go test -v
 === RUN   TestConnection_Success
 --- PASS: TestConnection_Success (1.05s)
 === RUN   TestConnection_Failure
@@ -47,6 +42,6 @@ t$ go test -v
 === RUN   TestReadMessagesFromChannel_Success
 --- PASS: TestReadMessagesFromChannel_Success (0.25s)
 PASS
-ok      github.com/aageorg/apiclient    2.667s
+ok      github.com/aageorg/ascendex    2.667s
 
 ```

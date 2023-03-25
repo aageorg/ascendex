@@ -1,4 +1,4 @@
-module github.com/aageorg/apiclient
+module github.com/aageorg/ascendex
 
 go 1.19
 
