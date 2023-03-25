@@ -77,7 +77,6 @@ func TestWriteMessagesToChannel_Success(t *testing.T) {
 	}
 }
 
-
 func TestReadMessagesFromChannel_Success(t *testing.T) {
 	a.SubscribeToChannel("BTC_USDT")
 	defer a.UnsubscribeFromChannel("BTC_USDT")
@@ -92,4 +91,3 @@ func TestReadMessagesFromChannel_Success(t *testing.T) {
 		t.FailNow()
 	}
 }
-

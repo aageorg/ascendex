@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 func (bbo BestOrderBook) String() string {
@@ -100,16 +101,15 @@ func (a *Ascendex) SubscribeToChannel(symbol string) error {
 	return nil
 }
 
-
 func (a *Ascendex) UnsubscribeFromChannel(symbol string) error {
 	if a.conn == nil {
 		return errors.New("Websocket connection closed")
 	}
 	re := regexp.MustCompile(`^[A-Z]+\_[A-Z]+$`)
-	if !re.Match([]byte(symbol))&&symbol!="" {
+	if !re.Match([]byte(symbol)) && symbol != "" {
 		return errors.New("Invalid symbol parameter")
-	} else if symbol!=""{
-		symbol = ":"+strings.Replace(symbol, "_", "/", -1)
+	} else if symbol != "" {
+		symbol = ":" + strings.Replace(symbol, "_", "/", -1)
 	}
 	err := a.conn.WriteJSON(map[string]string{"op": "unsub", "ch": "bbo" + symbol})
 	if err != nil {
@@ -118,7 +118,6 @@ func (a *Ascendex) UnsubscribeFromChannel(symbol string) error {
 	}
 	return nil
 }
-
 
 func (a *Ascendex) ReadMessagesFromChannel(ch chan<- BestOrderBook) {
 	for {
@@ -155,8 +154,12 @@ func main() {
 		fmt.Fprintln(os.Stderr, err.Error())
 		return
 	}
-	go asc.WriteMessagesToChannel()
-
+	go func() {
+		for {
+			asc.WriteMessagesToChannel()
+			time.Sleep(15 * time.Second)
+		}
+	}()
 	err = asc.SubscribeToChannel(symb)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
