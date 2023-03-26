@@ -37,6 +37,12 @@ func ParseBBO(bbo *BestOrderBook, v interface{}) (err error) {
 
 }
 
+type Client interface {
+	Close() error
+	WriteJSON(interface{}) error
+	ReadJSON(interface{}) error
+}
+
 type Message struct {
 	M      string      `json:"m"`
 	Symbol string      `json:"symbol,omitempty"`
@@ -46,7 +52,7 @@ type Message struct {
 type Ascendex struct {
 	mu     sync.Mutex
 	ws_url string
-	conn   *websocket.Conn
+	conn   Client
 }
 
 func NewAscendex(account_group string) *Ascendex {
