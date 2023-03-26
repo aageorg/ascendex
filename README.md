@@ -30,18 +30,28 @@ bid price 27403.40 amout 0.014370, offer price 27415.88 amount 0.014370
 ```
 $ go test -v
 === RUN   TestConnection_Success
---- PASS: TestConnection_Success (1.05s)
+--- PASS: TestConnection_Success (1.02s)
 === RUN   TestConnection_Failure
 --- PASS: TestConnection_Failure (0.00s)
+=== RUN   TestReadMessagesFromChannel_Success
+--- PASS: TestReadMessagesFromChannel_Success (0.00s)
+=== RUN   TestReadMessagesFromChannel_BadData
+--- PASS: TestReadMessagesFromChannel_BadData (1.01s)
+=== RUN   TestReadMessagesFromChannel_NoMessage
+--- PASS: TestReadMessagesFromChannel_NoMessage (1.01s)
 === RUN   TestSubscribeToChannel_Success
 --- PASS: TestSubscribeToChannel_Success (0.00s)
+=== RUN   TestSubscribeToChannel_NilClient
+--- PASS: TestSubscribeToChannel_NilClient (0.00s)
+=== RUN   TestSubscribeToChannel_BadParam
+--- PASS: TestSubscribeToChannel_BadParam (0.00s)
 === RUN   TestSubscribeToChannel_Failure
 --- PASS: TestSubscribeToChannel_Failure (0.00s)
 === RUN   TestWriteMessagesToChannel_Success
---- PASS: TestWriteMessagesToChannel_Success (0.26s)
-=== RUN   TestReadMessagesFromChannel_Success
---- PASS: TestReadMessagesFromChannel_Success (0.25s)
+--- PASS: TestWriteMessagesToChannel_Success (0.00s)
+=== RUN   TestWriteMessagesToChannel_NoAnswer
+--- PASS: TestWriteMessagesToChannel_NoAnswer (1.01s)
 PASS
-ok      github.com/aageorg/ascendex    2.667s
+ok      github.com/aageorg/ascendex     5.209s
 
 ```
