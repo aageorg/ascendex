@@ -107,27 +107,11 @@ func (a *Ascendex) SubscribeToChannel(symbol string) error {
 	return nil
 }
 
-// Required for testing
-
-func (a *Ascendex) UnsubscribeFromChannel(symbol string) error {
-	if a.conn == nil {
-		return errors.New("Websocket connection closed")
-	}
-	re := regexp.MustCompile(`^[A-Z]+\_[A-Z]+$`)
-	if !re.Match([]byte(symbol)) && symbol != "" {
-		return errors.New("Invalid symbol parameter")
-	} else if symbol != "" {
-		symbol = ":" + strings.Replace(symbol, "_", "/", -1)
-	}
-	err := a.conn.WriteJSON(map[string]string{"op": "unsub", "ch": "bbo" + symbol})
-	if err != nil {
-		a.Disconnect()
-		return err
-	}
-	return nil
-}
-
 func (a *Ascendex) ReadMessagesFromChannel(ch chan<- BestOrderBook) {
+	if a.conn == nil {
+		//fmt.Fprintln(os.Stderr, "Websocket connection closed")
+		return
+	}
 	for {
 		var m Message
 		err := a.conn.ReadJSON(&m)

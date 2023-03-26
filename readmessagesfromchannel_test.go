@@ -59,7 +59,6 @@ func TestReadMessagesFromChannel_BadData(t *testing.T) {
 		conn: ReadClientBadData{},
 	}
 	a.SubscribeToChannel("BTC_USDT")
-	defer a.UnsubscribeFromChannel("BTC_USDT")
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 	ch := make(chan BestOrderBook)
@@ -71,6 +70,22 @@ func TestReadMessagesFromChannel_BadData(t *testing.T) {
 		return
 	}
 }
+
+func TestReadMessagesFromChannel_NilClient(t *testing.T) {
+	a := &Ascendex{}
+	a.SubscribeToChannel("BTC_USDT")
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+	ch := make(chan BestOrderBook)
+	go a.ReadMessagesFromChannel(ch)
+	select {
+	case <-ch:
+		t.FailNow()
+	case <-ctx.Done():
+		return
+	}
+}
+
 
 type ReadClientNoMessage struct{}
 
@@ -91,7 +106,6 @@ func TestReadMessagesFromChannel_NoMessage(t *testing.T) {
 		conn: ReadClientNoMessage{},
 	}
 	a.SubscribeToChannel("BTC_USDT")
-	defer a.UnsubscribeFromChannel("BTC_USDT")
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 	ch := make(chan BestOrderBook)

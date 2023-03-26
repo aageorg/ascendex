@@ -24,7 +24,6 @@ func TestSubscribeToChannel_Success(t *testing.T) {
 		conn: SubscribeClientOk{},
 	}
 	err := a.SubscribeToChannel("BTC_USDT")
-	defer a.UnsubscribeFromChannel("BTC_USDT")
 	if err != nil {
 		t.FailNow()
 	}

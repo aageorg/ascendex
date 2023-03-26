@@ -28,15 +28,18 @@ bid price 27403.40 amout 0.014370, offer price 27415.88 amount 0.014370
 
 ### Tests
 ```
-$ go test -v
+$
+go test -v
 === RUN   TestConnection_Success
---- PASS: TestConnection_Success (1.02s)
+--- PASS: TestConnection_Success (1.06s)
 === RUN   TestConnection_Failure
 --- PASS: TestConnection_Failure (0.00s)
 === RUN   TestReadMessagesFromChannel_Success
 --- PASS: TestReadMessagesFromChannel_Success (0.00s)
 === RUN   TestReadMessagesFromChannel_BadData
 --- PASS: TestReadMessagesFromChannel_BadData (1.01s)
+=== RUN   TestReadMessagesFromChannel_NilClient
+--- PASS: TestReadMessagesFromChannel_NilClient (1.00s)
 === RUN   TestReadMessagesFromChannel_NoMessage
 --- PASS: TestReadMessagesFromChannel_NoMessage (1.01s)
 === RUN   TestSubscribeToChannel_Success
@@ -49,9 +52,10 @@ $ go test -v
 --- PASS: TestSubscribeToChannel_Failure (0.00s)
 === RUN   TestWriteMessagesToChannel_Success
 --- PASS: TestWriteMessagesToChannel_Success (0.00s)
+=== RUN   TestWriteMessagesToChannel_NilClient
+--- PASS: TestWriteMessagesToChannel_NilClient (1.02s)
 === RUN   TestWriteMessagesToChannel_NoAnswer
 --- PASS: TestWriteMessagesToChannel_NoAnswer (1.01s)
 PASS
-ok      github.com/aageorg/ascendex     5.209s
-
+ok      github.com/aageorg/ascendex     7.160s
 ```

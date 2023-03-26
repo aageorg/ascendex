@@ -65,6 +65,35 @@ func (cl PingClientFail) WriteJSON(v interface{}) error {
 	return nil
 }
 
+func TestWriteMessagesToChannel_NilClient(t *testing.T) {
+	a = &Ascendex{}
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+	ch := make(chan bool)
+	go func() {
+		for {
+			if a.conn == nil {
+				continue
+			}
+			var m Message
+			a.conn.ReadJSON(&m)
+			if m.M == "pong" {
+				ch <- true
+				break
+			}
+		}
+	}()
+	a.WriteMessagesToChannel()
+	select {
+	case <-ch:
+		t.FailNow()
+	case <-ctx.Done():
+		return
+	}
+}
+
+
+
 func TestWriteMessagesToChannel_NoAnswer(t *testing.T) {
 	a = &Ascendex{
 		conn: PingClientFail{},
